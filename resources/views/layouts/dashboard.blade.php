@@ -709,19 +709,19 @@
             </a>
 
 
-            <a href="#" class="nav-item">
+            <a href="{{ route('products.index') }}" class="nav-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
                 <span class="nav-icon">▣</span>
                 <span>Products</span>
             </a>
 
 
-            <a href="#" class="nav-item">
+            <a href="{{ route('categories.index') }}" class="nav-item {{ request()->routeIs('categories.*') ? 'active' : '' }}">
                 <span class="nav-icon">◫</span>
                 <span>Categories</span>
             </a>
 
 
-            <a href="#" class="nav-item">
+            <a href="{{ route('orders.index') }}" class="nav-item {{ request()->routeIs('orders.*') ? 'active' : '' }}">
                 <span class="nav-icon">▤</span>
                 <span>Orders</span>
             </a>

@@ -18,3 +18,15 @@ Route::post('/logout',[AuthController::class, 'logout'])->name('logout');
 Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->middleware(['auth'])->name('dashboard');
+
+Route::get('/dashboard/products', function () {
+    return view('product.index');
+})->middleware('auth')->name('products.index');
+
+Route::get('/dashboard/categories', function () {
+    return view('category.index');
+})->middleware('auth')->name('categories.index');
+
+Route::get('/dashboard/orders', function () {
+    return view('order.index');
+})->middleware('auth')->name('orders.index');
