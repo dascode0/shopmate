@@ -8,7 +8,6 @@
 @section('content')
 
 <style>
-
     /* =========================================
        DASHBOARD HEADER
     ========================================= */
@@ -173,8 +172,7 @@
         display: grid;
 
         grid-template-columns:
-            minmax(0, 1.55fr)
-            minmax(260px, 0.75fr);
+            minmax(0, 1.55fr) minmax(260px, 0.75fr);
 
         gap: 17px;
 
@@ -279,13 +277,11 @@
         bottom: 22px;
 
         background:
-            repeating-linear-gradient(
-                to bottom,
+            repeating-linear-gradient(to bottom,
                 #edf2ef 0px,
                 #edf2ef 1px,
                 transparent 1px,
-                transparent 38px
-            );
+                transparent 38px);
     }
 
     .chart-y-labels {
@@ -344,11 +340,9 @@
         width: min(22px, 55%);
 
         background:
-            linear-gradient(
-                180deg,
+            linear-gradient(180deg,
                 #20b77b,
-                #07965f
-            );
+                #07965f);
 
         border-radius: 4px 4px 2px 2px;
 
@@ -395,12 +389,10 @@
         border-radius: 50%;
 
         background:
-            conic-gradient(
-                #07965f 0deg 235deg,
+            conic-gradient(#07965f 0deg 235deg,
                 #4bb9db 235deg 295deg,
                 #f0a83b 295deg 330deg,
-                #e45c65 330deg 360deg
-            );
+                #e45c65 330deg 360deg);
 
         position: relative;
 
@@ -519,8 +511,7 @@
         display: grid;
 
         grid-template-columns:
-            minmax(0, 1.4fr)
-            minmax(300px, 0.8fr);
+            minmax(0, 1.4fr) minmax(300px, 0.8fr);
 
         gap: 17px;
     }
@@ -836,7 +827,6 @@
         }
 
     }
-
 </style>
 
 
@@ -847,16 +837,27 @@
 <div class="dashboard-header">
 
     <div class="welcome">
+            @php
+                $hour = now()->hour;
 
-        <h2>
-            Good Morning,
+                if ($hour < 12) {
+                    $greeting='Good Morning' ;
+                } elseif ($hour < 18) {
+                    $greeting='Good Afternoon' ;
+                } else {
+                    $greeting='Good Evening' ;
+                }
+            @endphp
+
+            <h2>
+            {{ $greeting }},
             {{ auth()->user()->name ?? 'User' }}
             👋
-        </h2>
+            </h2>
 
-        <p>
-            Here's what's happening with your store today.
-        </p>
+            <p>
+                Here's what's happening with your store today.
+            </p>
 
     </div>
 
@@ -993,7 +994,7 @@
         <div class="stat-top">
 
             <div class="stat-icon"
-                 style="background:#fff1f1;color:#e05252;">
+                style="background:#fff1f1;color:#e05252;">
                 !
             </div>
 
