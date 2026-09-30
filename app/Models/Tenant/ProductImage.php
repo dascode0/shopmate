@@ -4,24 +4,22 @@ namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class ProductImage extends Model
 {
     protected $connection = 'tenant';
     protected $fillable = [
-        'name',
-        'slug',
-        'description',
+        'product_id',
         'image_path',
-        'status',
         'sort_order',
+        'status',
     ];
     protected $casts = [
-        'status' => 'boolean',
         'sort_order' => 'integer',
+        'status' => 'boolean',
     ];
-
-    public function products()
+    public function product()
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsTo(Product::class);
     }
+
 }
