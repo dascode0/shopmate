@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 01, 2026 at 08:49 AM
+-- Generation Time: Oct 05, 2026 at 06:13 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -207,8 +207,7 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('YhHq86Os3rbvla9OJSx5MCBfTTTznpI0Onoqd0Be', 3, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:157.0) Gecko/20100101 Firefox/157.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiWGZBWjZtQ0FRcEt1NVh0YUFCZG1vaHFWWmlRYllIcFc1aHF5aW5PayI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kYXNoYm9hcmQiO3M6NToicm91dGUiO3M6OToiZGFzaGJvYXJkIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mzt9', 1790771669),
-('5YC1Hx4QRujfpKk818hBqEUibqIHXwW8cS0YPfuz', 3, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:157.0) Gecko/20100101 Firefox/157.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiU2lxSW96TzNFWXh6RTNXWHVvOHcya3FHdmZtUFROc0UwcVZQdXZUYiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kYXNoYm9hcmQvcHJvZHVjdHMiO3M6NToicm91dGUiO3M6MTQ6InByb2R1Y3RzLmluZGV4Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mzt9', 1790844491);
+('WdSMN0gMP9dYRoMJzego9nIVhx90IpBHfM03OfS4', 3, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:157.0) Gecko/20100101 Firefox/157.0', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiRTZ0WlpvdFdJZ1V1ems4UHZldE83MG5kVnBteGluTkNkdGdRcFFTTiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kYXNoYm9hcmQvcHJvZHVjdHMiO3M6NToicm91dGUiO3M6MTQ6InByb2R1Y3RzLmluZGV4Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Mzt9', 1791180614);
 
 -- --------------------------------------------------------
 
@@ -242,7 +241,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 INSERT INTO `users` (`id`, `company_id`, `shop_key`, `name`, `email`, `email_verified_at`, `phone`, `password`, `status`, `last_login_at`, `remember_token`, `created_at`, `updated_at`) VALUES
-(3, 6, 'sm_GDeefLP', 'avijit das', 'avi@gmail.com', NULL, '9876543210', '$2y$12$XVDtyzE2WfA7iEAc/FCXZum/9mhueJT8NBr9XYkDZiGYAAoPvoabC', 'active', '2026-10-01 06:56:20', NULL, '2026-09-29 09:36:14', '2026-10-01 06:56:20');
+(3, 6, 'sm_GDeefLP', 'avijit das', 'avi@gmail.com', NULL, '9876543210', '$2y$12$XVDtyzE2WfA7iEAc/FCXZum/9mhueJT8NBr9XYkDZiGYAAoPvoabC', 'active', '2026-10-05 04:42:53', NULL, '2026-09-29 09:36:14', '2026-10-05 04:42:53');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

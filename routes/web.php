@@ -3,6 +3,7 @@
 use App\Http\Controllers\auth\AuthController;
 use App\Http\Controllers\auth\RegisterController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Middleware\SetTenantDatabase;
 use Illuminate\Support\Facades\Route;
 
@@ -21,11 +22,16 @@ Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->middleware(['auth'])->name('dashboard');
 
-Route::get('/dashboard/products', function () {
-    return view('product.index');
-})->middleware('auth')->name('products.index');
-
 Route::middleware(['auth', SetTenantDatabase::class])->group(function () {
+    Route::get('/dashboard/products', [ProductController::class, 'index'])
+        ->name('products.index');
+    Route::post('/dashboard/products', [ProductController::class, 'store'])
+        ->name('products.store');
+    Route::put('/dashboard/products/{product}', [ProductController::class, 'update'])
+        ->name('products.update');
+    Route::delete('/dashboard/products/{product}', [ProductController::class, 'destroy'])
+        ->name('products.destroy');
+
     Route::get('/dashboard/categories', [CategoryController::class, 'index'])
         ->name('categories.index');
     Route::post('/dashboard/categories', [CategoryController::class, 'store'])

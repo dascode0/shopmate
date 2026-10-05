@@ -3,10 +3,13 @@
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
     protected $connection = 'tenant';
+
     protected $fillable = [
         'category_id',
         'name',
@@ -20,6 +23,7 @@ class Product extends Model
         'status',
         'sort_order',
     ];
+
     protected $casts = [
         'price' => 'decimal:2',
         'compare_price' => 'decimal:2',
@@ -30,13 +34,13 @@ class Product extends Model
         'sort_order' => 'integer',
     ];
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function productImages()
+    public function productImages(): HasMany
     {
-        return $this->hasMany(ProductImage::class);
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
 }

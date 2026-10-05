@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 01, 2026 at 08:49 AM
+-- Generation Time: Oct 05, 2026 at 06:13 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `image_path`, `status`, `sort_order`, `created_at`, `updated_at`) VALUES
-(5, 'bnbnvb', 'bnbnvb', 'dsfsdv sdfdsf vdfdsf dfsdf dfds sdfd', 'categories/t6jpKMAhCtBBmWpX9Y9I8NMMXOjC4ewnVy2NBKaN.jpg', 1, 1, '2026-09-30 10:09:04', '2026-09-30 12:00:03');
+(5, 'bnbnvb', 'bnbnvb', 'dsfsdv sdfdsf vdfdsf dfsdf dfds sdfd', 'categories/t6jpKMAhCtBBmWpX9Y9I8NMMXOjC4ewnVy2NBKaN.jpg', 1, 1, '2026-09-30 10:09:04', '2026-10-01 10:29:59');
 
 -- --------------------------------------------------------
 
@@ -127,7 +127,14 @@ CREATE TABLE IF NOT EXISTS `products` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `products_slug_unique` (`slug`),
   KEY `products_category_id_foreign` (`category_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `category_id`, `name`, `slug`, `description`, `price`, `compare_price`, `cost_price`, `stock_quantity`, `low_stock_threshold`, `status`, `sort_order`, `created_at`, `updated_at`) VALUES
+(2, 5, 'watch', 'watch', NULL, 1000.00, NULL, NULL, 1, 3, 1, 0, '2026-10-05 05:17:01', '2026-10-05 06:07:08');
 
 -- --------------------------------------------------------
 
@@ -146,7 +153,15 @@ CREATE TABLE IF NOT EXISTS `product_images` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `product_images_product_id_foreign` (`product_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `product_images`
+--
+
+INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES
+(2, 2, 'products/MbDTyv98XalALdGLzLg6XbzOFsTHeofDlProAhfd.jpg', 0, 1, '2026-10-05 05:17:01', '2026-10-05 06:07:08'),
+(3, 2, 'products/sRNvebEKv2B5O2cskdqWxCg0DKdWXkKsURMWkQRt.jpg', 1, 1, '2026-10-05 05:17:01', '2026-10-05 06:07:08');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

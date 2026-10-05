@@ -209,6 +209,13 @@
         flex-shrink: 0;
     }
 
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        border-radius: inherit;
+        object-fit: cover;
+    }
+
     .product-name {
         font-weight: 600;
         color: #17221c;
@@ -395,6 +402,12 @@
         resize: vertical;
     }
 
+    .product-field-error {
+        margin: 6px 0 0;
+        color: #c84b4b;
+        font-size: 12px;
+    }
+
     .product-form-field input:focus,
     .product-form-field textarea:focus,
     .product-form-field select:focus {
@@ -435,6 +448,58 @@
         margin: 0;
         color: #89938d;
         font-size: 11px;
+    }
+
+    .product-image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 0 0 16px;
+    }
+
+    .product-image-item {
+        position: relative;
+        width: 92px;
+        padding: 6px;
+        border: 1px solid #e5ece9;
+        border-radius: 8px;
+        background: #fafcfb;
+        cursor: grab;
+    }
+
+    .product-image-item:active {
+        cursor: grabbing;
+    }
+
+    .product-image-item.dragging {
+        opacity: 0.45;
+    }
+
+    .product-image-item.drag-over {
+        border-color: #16865c;
+        box-shadow: 0 0 0 2px rgba(22, 134, 92, 0.14);
+    }
+
+    .product-image-item img {
+        display: block;
+        width: 78px;
+        height: 78px;
+        border-radius: 5px;
+        object-fit: cover;
+    }
+
+    .product-image-item label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 5px;
+        color: #c84b4b;
+        font-size: 11px;
+        cursor: pointer;
+    }
+
+    .product-image-item input {
+        margin: 0;
     }
 
     .product-form-actions {
@@ -614,25 +679,25 @@
 
         <div class="stat-card">
             <div class="stat-label">Total Products</div>
-            <div class="stat-value">248</div>
+            <div class="stat-value">{{ $totalProducts }}</div>
             <div class="stat-sub">All products</div>
         </div>
 
         <div class="stat-card">
             <div class="stat-label">Active Products</div>
-            <div class="stat-value">221</div>
+            <div class="stat-value">{{ $activeProducts }}</div>
             <div class="stat-sub">Currently available</div>
         </div>
 
         <div class="stat-card">
             <div class="stat-label">Low Stock</div>
-            <div class="stat-value">18</div>
+            <div class="stat-value">{{ $lowStockProducts }}</div>
             <div class="stat-sub warning">Needs attention</div>
         </div>
 
         <div class="stat-card">
             <div class="stat-label">Out of Stock</div>
-            <div class="stat-value">9</div>
+            <div class="stat-value">{{ $outOfStockProducts }}</div>
             <div class="stat-sub warning">Currently unavailable</div>
         </div>
 
@@ -652,6 +717,7 @@
                 <input
                     type="text"
                     placeholder="Search products..."
+                    id="product-search"
                 >
 
             </div>
@@ -659,20 +725,17 @@
 
             <div class="filter-box">
 
-                <select>
+                <select id="product-category-filter">
                     <option value="">All Categories</option>
-                    <option>Electronics</option>
-                    <option>Accessories</option>
-                    <option>Clothing</option>
-                    <option>Home & Kitchen</option>
-                    <option>Sports</option>
+                    @foreach ($categories as $category)
+                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
                 </select>
 
-                <select>
+                <select id="product-status-filter">
                     <option value="">All Status</option>
-                    <option>Active</option>
-                    <option>Inactive</option>
-                    <option>Draft</option>
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
                 </select>
 
             </div>
@@ -702,449 +765,73 @@
 
                 <tbody>
 
-                    <tr>
-
+                    @forelse ($products as $product)
+                    @php
+                        $productImage = $product->productImages->first();
+                        $stockClass = $product->stock_quantity === 0
+                            ? 'out'
+                            : ($product->stock_quantity <= $product->low_stock_threshold ? 'low' : 'good');
+                    @endphp
+                    <tr
+                        class="product-row"
+                        data-search="{{ strtolower($product->name . ' ' . $product->slug . ' ' . ($product->category?->name ?? '')) }}"
+                        data-category="{{ $product->category_id }}"
+                        data-status="{{ $product->status ? '1' : '0' }}">
                         <td>
-
                             <div class="product-info">
-
                                 <div class="product-image">
+                                    @if ($productImage)
+                                    <img src="{{ asset('storage/' . ltrim($productImage->image_path, '/')) }}" alt="{{ $product->name }}">
+                                    @else
                                     ◈
+                                    @endif
                                 </div>
-
                                 <div>
-                                    <div class="product-name">
-                                        Wireless Headphones
-                                    </div>
-
-                                    <div class="product-code">
-                                        SKU-001
-                                    </div>
+                                    <div class="product-name">{{ $product->name }}</div>
+                                    <div class="product-code">{{ $product->slug }}</div>
                                 </div>
-
                             </div>
-
                         </td>
-
-                        <td>Electronics</td>
-
-                        <td class="price">
-                            ₹2,499.00
-                        </td>
-
-                        <td class="stock good">
-                            48
-                        </td>
-
+                        <td>{{ $product->category?->name ?? '—' }}</td>
+                        <td class="price">₹{{ number_format((float) $product->price, 2) }}</td>
+                        <td class="stock {{ $stockClass }}">{{ $product->stock_quantity }}</td>
                         <td>
-                            <span class="status active">
-                                Active
+                            <span class="status {{ $product->status ? 'active' : 'inactive' }}">
+                                {{ $product->status ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
-
+                        <td>{{ $product->created_at->format('d M Y') }}</td>
                         <td>
-                            20 Sep 2026
-                        </td>
-
-                        <td>
-
                             <div class="actions">
-
                                 <button
                                     type="button"
                                     class="action-btn edit-product-btn"
-                                    aria-label="Edit Wireless Headphones"
-                                    data-name="Wireless Headphones"
-                                    data-sku="SKU-001"
-                                    data-category="Electronics"
-                                    data-price="2499"
-                                    data-stock="48"
-                                    data-status="active">✎</button>
-
-                                <a href="#" class="action-btn">
-                                    ◉
-                                </a>
-
-                                <button class="action-btn delete">
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-
-                    <tr>
-
-                        <td>
-
-                            <div class="product-info">
-
-                                <div class="product-image">
-                                    ◇
-                                </div>
-
-                                <div>
-                                    <div class="product-name">
-                                        Premium USB Cable
-                                    </div>
-
-                                    <div class="product-code">
-                                        SKU-002
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td>Accessories</td>
-
-                        <td class="price">
-                            ₹499.00
-                        </td>
-
-                        <td class="stock good">
-                            120
-                        </td>
-
-                        <td>
-                            <span class="status active">
-                                Active
-                            </span>
-                        </td>
-
-                        <td>
-                            18 Sep 2026
-                        </td>
-
-                        <td>
-
-                            <div class="actions">
+                                    aria-label="Edit {{ $product->name }}"
+                                    data-product-id="{{ $product->id }}"
+                                    data-update-url="{{ route('products.update', $product->id) }}"
+                                    data-name="{{ $product->name }}"
+                                    data-description="{{ $product->description }}"
+                                    data-category-id="{{ $product->category_id }}"
+                                    data-price="{{ $product->price }}"
+                                    data-stock="{{ $product->stock_quantity }}"
+                                    data-low-stock-threshold="{{ $product->low_stock_threshold }}"
+                                    data-status="{{ $product->status ? '1' : '0' }}"
+                                    data-images="{{ $product->productImages->map(fn ($image) => ['id' => $image->id, 'url' => asset('storage/' . ltrim($image->image_path, '/'))])->values()->toJson() }}">✎</button>
 
                                 <button
                                     type="button"
-                                    class="action-btn edit-product-btn"
-                                    aria-label="Edit Premium USB Cable"
-                                    data-name="Premium USB Cable"
-                                    data-sku="SKU-002"
-                                    data-category="Accessories"
-                                    data-price="499"
-                                    data-stock="120"
-                                    data-status="active">✎</button>
-
-                                <a href="#" class="action-btn">
-                                    ◉
-                                </a>
-
-                                <button class="action-btn delete">
-                                    ×
-                                </button>
-
+                                    class="action-btn delete-product-btn"
+                                    aria-label="Delete {{ $product->name }}"
+                                    data-delete-url="{{ route('products.destroy', $product->id) }}"
+                                    onclick="if (confirm('Are you sure you want to delete this product?')) { window.location.href = this.dataset.deleteUrl; }">🗑</button>
                             </div>
-
                         </td>
-
                     </tr>
-
-
-                    <tr>
-
-                        <td>
-
-                            <div class="product-info">
-
-                                <div class="product-image">
-                                    ▣
-                                </div>
-
-                                <div>
-                                    <div class="product-name">
-                                        Men's Casual Shirt
-                                    </div>
-
-                                    <div class="product-code">
-                                        SKU-003
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td>Clothing</td>
-
-                        <td class="price">
-                            ₹1,299.00
-                        </td>
-
-                        <td class="stock low">
-                            7
-                        </td>
-
-                        <td>
-                            <span class="status active">
-                                Active
-                            </span>
-                        </td>
-
-                        <td>
-                            15 Sep 2026
-                        </td>
-
-                        <td>
-
-                            <div class="actions">
-
-                                <button
-                                    type="button"
-                                    class="action-btn edit-product-btn"
-                                    aria-label="Edit Men's Casual Shirt"
-                                    data-name="Men's Casual Shirt"
-                                    data-sku="SKU-003"
-                                    data-category="Clothing"
-                                    data-price="1299"
-                                    data-stock="7"
-                                    data-status="active">✎</button>
-
-                                <a href="#" class="action-btn">
-                                    ◉
-                                </a>
-
-                                <button class="action-btn delete">
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </td>
-
+                    @empty
+                    <tr class="product-empty-row">
+                        <td colspan="7">No products saved yet. Select “Add Product” to create your first one.</td>
                     </tr>
-
-
-                    <tr>
-
-                        <td>
-
-                            <div class="product-info">
-
-                                <div class="product-image">
-                                    ▤
-                                </div>
-
-                                <div>
-                                    <div class="product-name">
-                                        Kitchen Storage Set
-                                    </div>
-
-                                    <div class="product-code">
-                                        SKU-004
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td>Home & Kitchen</td>
-
-                        <td class="price">
-                            ₹899.00
-                        </td>
-
-                        <td class="stock out">
-                            0
-                        </td>
-
-                        <td>
-                            <span class="status inactive">
-                                Inactive
-                            </span>
-                        </td>
-
-                        <td>
-                            12 Sep 2026
-                        </td>
-
-                        <td>
-
-                            <div class="actions">
-
-                                <button
-                                    type="button"
-                                    class="action-btn edit-product-btn"
-                                    aria-label="Edit Kitchen Storage Set"
-                                    data-name="Kitchen Storage Set"
-                                    data-sku="SKU-004"
-                                    data-category="Home &amp; Kitchen"
-                                    data-price="899"
-                                    data-stock="0"
-                                    data-status="inactive">✎</button>
-
-                                <a href="#" class="action-btn">
-                                    ◉
-                                </a>
-
-                                <button class="action-btn delete">
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-
-                    <tr>
-
-                        <td>
-
-                            <div class="product-info">
-
-                                <div class="product-image">
-                                    ◫
-                                </div>
-
-                                <div>
-                                    <div class="product-name">
-                                        Running Shoes
-                                    </div>
-
-                                    <div class="product-code">
-                                        SKU-005
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td>Sports</td>
-
-                        <td class="price">
-                            ₹2,999.00
-                        </td>
-
-                        <td class="stock low">
-                            5
-                        </td>
-
-                        <td>
-                            <span class="status draft">
-                                Draft
-                            </span>
-                        </td>
-
-                        <td>
-                            08 Sep 2026
-                        </td>
-
-                        <td>
-
-                            <div class="actions">
-
-                                <button
-                                    type="button"
-                                    class="action-btn edit-product-btn"
-                                    aria-label="Edit Running Shoes"
-                                    data-name="Running Shoes"
-                                    data-sku="SKU-005"
-                                    data-category="Sports"
-                                    data-price="2999"
-                                    data-stock="5"
-                                    data-status="draft">✎</button>
-
-                                <a href="#" class="action-btn">
-                                    ◉
-                                </a>
-
-                                <button class="action-btn delete">
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
-
-                    <tr>
-
-                        <td>
-
-                            <div class="product-info">
-
-                                <div class="product-image">
-                                    ◎
-                                </div>
-
-                                <div>
-                                    <div class="product-name">
-                                        Face Care Kit
-                                    </div>
-
-                                    <div class="product-code">
-                                        SKU-006
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </td>
-
-                        <td>Beauty</td>
-
-                        <td class="price">
-                            ₹1,599.00
-                        </td>
-
-                        <td class="stock good">
-                            36
-                        </td>
-
-                        <td>
-                            <span class="status active">
-                                Active
-                            </span>
-                        </td>
-
-                        <td>
-                            05 Sep 2026
-                        </td>
-
-                        <td>
-
-                            <div class="actions">
-
-                                <button
-                                    type="button"
-                                    class="action-btn edit-product-btn"
-                                    aria-label="Edit Face Care Kit"
-                                    data-name="Face Care Kit"
-                                    data-sku="SKU-006"
-                                    data-category="Beauty"
-                                    data-price="1599"
-                                    data-stock="36"
-                                    data-status="active">✎</button>
-
-                                <a href="#" class="action-btn">
-                                    ◉
-                                </a>
-
-                                <button class="action-btn delete">
-                                    ×
-                                </button>
-
-                            </div>
-
-                        </td>
-
-                    </tr>
-
+                    @endforelse
                 </tbody>
 
             </table>
@@ -1155,36 +842,8 @@
         {{-- Footer --}}
         <div class="table-footer">
 
-            <div class="showing-text">
-                Showing 1 to 6 of 248 products
-            </div>
-
-            <div class="pagination">
-
-                <button class="page-btn">
-                    ‹
-                </button>
-
-                <button class="page-btn active">
-                    1
-                </button>
-
-                <button class="page-btn">
-                    2
-                </button>
-
-                <button class="page-btn">
-                    3
-                </button>
-
-                <button class="page-btn">
-                    4
-                </button>
-
-                <button class="page-btn">
-                    ›
-                </button>
-
+            <div class="showing-text" id="product-showing-count">
+                Showing <strong>{{ $products->count() }}</strong> of <strong>{{ $totalProducts }}</strong> products
             </div>
 
         </div>
@@ -1193,7 +852,11 @@
 
 </div>
 
-<div class="product-modal" id="add-product-modal" aria-hidden="true">
+@if (session('success'))
+<div class="product-preview-notice show" role="status">{{ session('success') }}</div>
+@endif
+
+<div class="product-modal {{ $errors->any() && !old('_edit_product_id') ? 'open' : '' }}" id="add-product-modal" aria-hidden="{{ $errors->any() && !old('_edit_product_id') ? 'false' : 'true' }}">
     <section class="product-modal-card" role="dialog" aria-modal="true" aria-labelledby="add-product-title">
         <div class="product-modal-header">
             <div>
@@ -1203,57 +866,60 @@
             <button type="button" class="product-modal-close" data-close-product-modal="add-product-modal" aria-label="Close form">&times;</button>
         </div>
 
-        <form class="product-preview-form">
-            <div class="product-image-preview">
-                <div class="product-image-placeholder" id="add-product-image-placeholder">◈</div>
-                <img id="add-product-image-preview" alt="Product image preview" hidden>
-                <p>Choose an image to preview it here.</p>
+        <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
+            @csrf
+            @if ($errors->any() && !old('_edit_product_id'))
+            <div class="product-field-error" role="alert">
+                @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+                @endforeach
             </div>
+            @endif
+            <div class="product-image-preview">
+                <p>Select one or more product images.</p>
+            </div>
+            <div class="product-image-gallery" id="add-product-image-gallery"></div>
 
             <div class="product-form-grid">
                 <div class="product-form-field">
                     <label for="add-product-name">Product name *</label>
-                    <input id="add-product-name" name="name" type="text" maxlength="255" required placeholder="e.g. Wireless Headphones">
+                    <input id="add-product-name" name="name" type="text" value="{{ old('name') }}" maxlength="255" required placeholder="e.g. Wireless Headphones">
                 </div>
                 <div class="product-form-field">
-                    <label for="add-product-sku">SKU *</label>
-                    <input id="add-product-sku" name="sku" type="text" maxlength="100" required placeholder="e.g. SKU-007">
+                    <label for="add-product-low-stock-threshold">Low stock threshold *</label>
+                    <input id="add-product-low-stock-threshold" name="low_stock_threshold" type="number" value="{{ old('low_stock_threshold', 5) }}" min="0" step="1" required>
                 </div>
                 <div class="product-form-field">
                     <label for="add-product-category">Category *</label>
-                    <select id="add-product-category" name="category" required>
+                    <select id="add-product-category" name="category_id" required>
                         <option value="">Select a category</option>
-                        <option>Electronics</option>
-                        <option>Accessories</option>
-                        <option>Clothing</option>
-                        <option>Home &amp; Kitchen</option>
-                        <option>Sports</option>
-                        <option>Beauty</option>
+                        @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="product-form-field">
                     <label for="add-product-status">Status</label>
-                    <select id="add-product-status" name="status">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="draft">Draft</option>
+                    <select id="add-product-status" name="status" required>
+                        <option value="1" {{ old('status', '1') === '1' ? 'selected' : '' }}>Active</option>
+                        <option value="0" {{ old('status') === '0' ? 'selected' : '' }}>Inactive</option>
                     </select>
                 </div>
                 <div class="product-form-field">
                     <label for="add-product-price">Selling price (₹) *</label>
-                    <input id="add-product-price" name="price" type="number" min="0" step="0.01" required placeholder="0.00">
+                    <input id="add-product-price" name="price" type="number" value="{{ old('price') }}" min="0" step="0.01" required placeholder="0.00">
                 </div>
                 <div class="product-form-field">
                     <label for="add-product-stock">Stock quantity *</label>
-                    <input id="add-product-stock" name="stock" type="number" min="0" step="1" required placeholder="0">
+                    <input id="add-product-stock" name="stock_quantity" type="number" value="{{ old('stock_quantity', 0) }}" min="0" step="1" required placeholder="0">
                 </div>
                 <div class="product-form-field full-width">
-                    <label for="add-product-image">Product image</label>
-                    <input id="add-product-image" name="image" type="file" accept="image/*">
+                    <label for="add-product-images">Product images</label>
+                    <input id="add-product-images" name="images[]" type="file" accept="image/*" multiple>
                 </div>
                 <div class="product-form-field full-width">
                     <label for="add-product-description">Description</label>
-                    <textarea id="add-product-description" name="description" maxlength="2000" placeholder="Describe the product"></textarea>
+                    <textarea id="add-product-description" name="description" maxlength="2000" placeholder="Describe the product">{{ old('description') }}</textarea>
                 </div>
             </div>
 
@@ -1265,7 +931,7 @@
     </section>
 </div>
 
-<div class="product-modal" id="edit-product-modal" aria-hidden="true">
+<div class="product-modal {{ old('_edit_product_id') ? 'open' : '' }}" id="edit-product-modal" aria-hidden="{{ old('_edit_product_id') ? 'false' : 'true' }}">
     <section class="product-modal-card" role="dialog" aria-modal="true" aria-labelledby="edit-product-title">
         <div class="product-modal-header">
             <div>
@@ -1275,57 +941,63 @@
             <button type="button" class="product-modal-close" data-close-product-modal="edit-product-modal" aria-label="Close form">&times;</button>
         </div>
 
-        <form class="product-preview-form">
-            <div class="product-image-preview">
-                <div class="product-image-placeholder" id="edit-product-image-placeholder">◈</div>
-                <img id="edit-product-image-preview" alt="Product image preview" hidden>
-                <p>Choose a new image or keep the current product image.</p>
+        <form method="POST" action="#" enctype="multipart/form-data" id="edit-product-form">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="_edit_product_id" id="edit-product-id" value="{{ old('_edit_product_id') }}">
+            @if ($errors->any() && old('_edit_product_id'))
+            <div class="product-field-error" role="alert">
+                @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+                @endforeach
             </div>
+            @endif
+            <div class="product-image-preview">
+                <p>Drag images to change their order. Mark any image to remove, or add more images below.</p>
+            </div>
+            <div class="product-image-gallery" id="edit-product-existing-images"></div>
+            <div class="product-image-gallery" id="edit-product-new-images"></div>
 
             <div class="product-form-grid">
                 <div class="product-form-field">
                     <label for="edit-product-name">Product name *</label>
-                    <input id="edit-product-name" name="name" type="text" maxlength="255" required>
+                    <input id="edit-product-name" name="name" type="text" value="{{ old('name') }}" maxlength="255" required>
                 </div>
                 <div class="product-form-field">
-                    <label for="edit-product-sku">SKU *</label>
-                    <input id="edit-product-sku" name="sku" type="text" maxlength="100" required>
+                    <label for="edit-product-low-stock-threshold">Low stock threshold *</label>
+                    <input id="edit-product-low-stock-threshold" name="low_stock_threshold" type="number" value="{{ old('low_stock_threshold', 5) }}" min="0" step="1" required>
                 </div>
                 <div class="product-form-field">
                     <label for="edit-product-category">Category *</label>
-                    <select id="edit-product-category" name="category" required>
+                    <select id="edit-product-category" name="category_id" required>
                         <option value="">Select a category</option>
-                        <option>Electronics</option>
-                        <option>Accessories</option>
-                        <option>Clothing</option>
-                        <option>Home &amp; Kitchen</option>
-                        <option>Sports</option>
-                        <option>Beauty</option>
+                        @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="product-form-field">
                     <label for="edit-product-status">Status</label>
-                    <select id="edit-product-status" name="status">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="draft">Draft</option>
+                    <select id="edit-product-status" name="status" required>
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
                     </select>
                 </div>
                 <div class="product-form-field">
                     <label for="edit-product-price">Selling price (₹) *</label>
-                    <input id="edit-product-price" name="price" type="number" min="0" step="0.01" required>
+                    <input id="edit-product-price" name="price" type="number" value="{{ old('price') }}" min="0" step="0.01" required>
                 </div>
                 <div class="product-form-field">
                     <label for="edit-product-stock">Stock quantity *</label>
-                    <input id="edit-product-stock" name="stock" type="number" min="0" step="1" required>
+                    <input id="edit-product-stock" name="stock_quantity" type="number" value="{{ old('stock_quantity') }}" min="0" step="1" required>
                 </div>
                 <div class="product-form-field full-width">
-                    <label for="edit-product-image">Product image</label>
-                    <input id="edit-product-image" name="image" type="file" accept="image/*">
+                    <label for="edit-product-images">Add images</label>
+                    <input id="edit-product-images" name="images[]" type="file" accept="image/*" multiple>
                 </div>
                 <div class="product-form-field full-width">
                     <label for="edit-product-description">Description</label>
-                    <textarea id="edit-product-description" name="description" maxlength="2000" placeholder="Describe the product"></textarea>
+                    <textarea id="edit-product-description" name="description" maxlength="2000" placeholder="Describe the product">{{ old('description') }}</textarea>
                 </div>
             </div>
 
@@ -1337,23 +1009,17 @@
     </section>
 </div>
 
-<div class="product-preview-notice" id="product-preview-notice" role="status" aria-live="polite">
-    Frontend preview only. Product changes are not saved.
-</div>
-
 <script>
     (() => {
         const addModal = document.getElementById('add-product-modal');
         const editModal = document.getElementById('edit-product-modal');
-        const notice = document.getElementById('product-preview-notice');
         let activeTrigger = null;
-        let noticeTimeout;
 
         const openModal = (modal) => {
             activeTrigger = document.activeElement;
             modal.classList.add('open');
             modal.setAttribute('aria-hidden', 'false');
-            modal.querySelector('input:not([type="file"])').focus();
+            modal.querySelector('input:not([type="file"]):not([type="hidden"])').focus();
         };
 
         const closeModal = (modal) => {
@@ -1376,12 +1042,7 @@
 
         document.querySelectorAll('.edit-product-btn').forEach((button) => {
             button.addEventListener('click', () => {
-                document.getElementById('edit-product-name').value = button.dataset.name || '';
-                document.getElementById('edit-product-sku').value = button.dataset.sku || '';
-                document.getElementById('edit-product-category').value = button.dataset.category || '';
-                document.getElementById('edit-product-price').value = button.dataset.price || '';
-                document.getElementById('edit-product-stock').value = button.dataset.stock || '0';
-                document.getElementById('edit-product-status').value = button.dataset.status || 'active';
+                openEditProduct(button);
                 openModal(editModal);
             });
         });
@@ -1404,35 +1065,191 @@
             }
         });
 
-        document.querySelectorAll('.product-preview-form').forEach((form) => {
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-                notice.classList.add('show');
-                window.clearTimeout(noticeTimeout);
-                noticeTimeout = window.setTimeout(() => {
-                    notice.classList.remove('show');
-                }, 3200);
+        const addImagesInput = document.getElementById('add-product-images');
+        const editImagesInput = document.getElementById('edit-product-images');
+        const addImagesGallery = document.getElementById('add-product-image-gallery');
+        const editExistingImagesGallery = document.getElementById('edit-product-existing-images');
+        const editNewImagesGallery = editExistingImagesGallery;
+
+        const renderNewImages = (input, gallery, append = false) => {
+            if (append) {
+                gallery.querySelectorAll('[data-image-reference^="new:"]').forEach((item) => item.remove());
+            } else {
+                gallery.replaceChildren();
+            }
+
+            Array.from(input.files).forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'product-image-item';
+                item.draggable = true;
+                item.dataset.imageReference = `new:${index}`;
+                const image = document.createElement('img');
+                image.src = URL.createObjectURL(file);
+                image.alt = file.name;
+                item.append(image);
+                gallery.append(item);
             });
-        });
+            syncImageOrder();
+        };
 
-        document.querySelectorAll('.product-modal input[type="file"]').forEach((input) => {
-            input.addEventListener('change', () => {
-                const prefix = input.id.startsWith('edit-') ? 'edit' : 'add';
-                const preview = document.getElementById(`${prefix}-product-image-preview`);
-                const placeholder = document.getElementById(`${prefix}-product-image-placeholder`);
-                const file = input.files[0];
+        const renderExistingImages = (images, selectedForRemoval = []) => {
+            editExistingImagesGallery.replaceChildren();
 
-                if (!file) {
-                    preview.removeAttribute('src');
-                    preview.hidden = true;
-                    placeholder.hidden = false;
+            images.forEach((imageData) => {
+                const item = document.createElement('div');
+                item.className = 'product-image-item';
+                item.draggable = true;
+                item.dataset.imageReference = `existing:${imageData.id}`;
+                const image = document.createElement('img');
+                image.src = imageData.url;
+                image.alt = 'Product image';
+                item.title = 'Drag to change image order';
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'delete_image_ids[]';
+                checkbox.value = imageData.id;
+                checkbox.checked = selectedForRemoval.includes(String(imageData.id));
+                checkbox.addEventListener('change', syncImageOrder);
+                const text = document.createTextNode('Remove');
+                label.append(checkbox, text);
+                item.append(image, label);
+                editExistingImagesGallery.append(item);
+            });
+            syncImageOrder();
+        };
+
+        const syncImageOrder = () => {
+            editExistingImagesGallery.querySelectorAll('input[name="image_order[]"]').forEach((input) => input.remove());
+
+            Array.from(editExistingImagesGallery.children).forEach((item) => {
+                const removeInput = item.querySelector('input[name="delete_image_ids[]"]');
+                if (removeInput && removeInput.checked) {
                     return;
                 }
 
-                preview.src = URL.createObjectURL(file);
-                preview.hidden = false;
-                placeholder.hidden = true;
+                const orderInput = document.createElement('input');
+                orderInput.type = 'hidden';
+                orderInput.name = 'image_order[]';
+                orderInput.value = item.dataset.imageReference;
+                item.append(orderInput);
             });
+        };
+
+        editExistingImagesGallery.addEventListener('dragstart', (event) => {
+            const item = event.target.closest('.product-image-item');
+            if (!item) {
+                return;
+            }
+
+            item.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', item.dataset.imageReference);
+        });
+
+        editExistingImagesGallery.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            const dragging = editExistingImagesGallery.querySelector('.dragging');
+            const target = event.target.closest('.product-image-item');
+            if (!dragging || !target || target === dragging) {
+                return;
+            }
+
+            const bounds = target.getBoundingClientRect();
+            const insertAfter = event.clientX > bounds.left + bounds.width / 2;
+            editExistingImagesGallery.insertBefore(dragging, insertAfter ? target.nextSibling : target);
+            editExistingImagesGallery.querySelectorAll('.drag-over').forEach((item) => item.classList.remove('drag-over'));
+            target.classList.add('drag-over');
+        });
+
+        editExistingImagesGallery.addEventListener('dragend', () => {
+            editExistingImagesGallery.querySelectorAll('.dragging, .drag-over').forEach((item) => {
+                item.classList.remove('dragging', 'drag-over');
+            });
+            syncImageOrder();
+        });
+
+        addImagesInput.addEventListener('change', () => {
+            renderNewImages(addImagesInput, addImagesGallery);
+        });
+
+        editImagesInput.addEventListener('change', () => {
+            renderNewImages(editImagesInput, editNewImagesGallery, true);
+        });
+
+        const openEditProduct = (button) => {
+            document.getElementById('edit-product-form').action = button.dataset.updateUrl;
+            document.getElementById('edit-product-id').value = button.dataset.productId;
+            document.getElementById('edit-product-name').value = button.dataset.name || '';
+            document.getElementById('edit-product-description').value = button.dataset.description || '';
+            document.getElementById('edit-product-category').value = button.dataset.categoryId || '';
+            document.getElementById('edit-product-price').value = button.dataset.price || '';
+            document.getElementById('edit-product-stock').value = button.dataset.stock || '0';
+            document.getElementById('edit-product-low-stock-threshold').value = button.dataset.lowStockThreshold || '0';
+            document.getElementById('edit-product-status').value = button.dataset.status || '1';
+            editImagesInput.value = '';
+            editExistingImagesGallery.replaceChildren();
+            renderExistingImages(JSON.parse(button.dataset.images || '[]'));
+        };
+
+        const reopenEditProductId = @json(old('_edit_product_id'));
+        if (reopenEditProductId) {
+            const editButton = Array.from(document.querySelectorAll('.edit-product-btn'))
+                .find((button) => button.dataset.productId === String(reopenEditProductId));
+
+            if (editButton) {
+                openEditProduct(editButton);
+                renderExistingImages(
+                    JSON.parse(editButton.dataset.images || '[]'),
+                    (@json(old('delete_image_ids', []))).map(String)
+                );
+                const itemsByReference = new Map(
+                    Array.from(editExistingImagesGallery.children)
+                        .map((item) => [item.dataset.imageReference, item])
+                );
+                (@json(old('image_order', []))).forEach((reference) => {
+                    const item = itemsByReference.get(reference);
+                    if (item) {
+                        editExistingImagesGallery.append(item);
+                        itemsByReference.delete(reference);
+                    }
+                });
+                itemsByReference.forEach((item) => editExistingImagesGallery.append(item));
+                syncImageOrder();
+                document.getElementById('edit-product-name').value = @json(old('name', ''));
+                document.getElementById('edit-product-description').value = @json(old('description', ''));
+                document.getElementById('edit-product-category').value = @json(old('category_id', ''));
+                document.getElementById('edit-product-price').value = @json(old('price', ''));
+                document.getElementById('edit-product-stock').value = @json(old('stock_quantity', '0'));
+                document.getElementById('edit-product-low-stock-threshold').value = @json(old('low_stock_threshold', '0'));
+                document.getElementById('edit-product-status').value = @json(old('status', '1'));
+            }
+        }
+
+        const searchInput = document.getElementById('product-search');
+        const categoryFilter = document.getElementById('product-category-filter');
+        const statusFilter = document.getElementById('product-status-filter');
+        const productRows = Array.from(document.querySelectorAll('.product-row'));
+        const showingCount = document.getElementById('product-showing-count');
+
+        const filterProducts = () => {
+            const search = searchInput.value.trim().toLocaleLowerCase();
+            let visibleCount = 0;
+
+            productRows.forEach((row) => {
+                const matches = row.dataset.search.includes(search)
+                    && (!categoryFilter.value || row.dataset.category === categoryFilter.value)
+                    && (!statusFilter.value || row.dataset.status === statusFilter.value);
+                row.hidden = !matches;
+                visibleCount += matches ? 1 : 0;
+            });
+
+            showingCount.innerHTML = `Showing <strong>${visibleCount}</strong> of <strong>${productRows.length}</strong> products`;
+        };
+
+        [searchInput, categoryFilter, statusFilter].forEach((control) => {
+            control.addEventListener('input', filterProducts);
+            control.addEventListener('change', filterProducts);
         });
     })();
 </script>
