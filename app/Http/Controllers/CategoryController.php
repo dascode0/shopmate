@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant\Category;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
+
 
 class CategoryController extends Controller
 {
@@ -127,5 +130,44 @@ class CategoryController extends Controller
         return redirect()
             ->route('categories.index')
             ->with('success', 'Category deleted successfully.');
+    }
+
+    public function get_categories(string $shop_key) 
+    {
+        $user = User::where('shop_key', $shop_key)->first();
+        if (!$user) {
+            return response()->json(['error' => 'Invalid shop key'], 404);
+        }
+
+        $company = $user->company;
+        $databaseName = $company->database_name;
+        // Set the tenant database connection
+        config(['database.connections.tenant.database' => $databaseName]);
+        $categories = Category::where('status', true)
+            ->orderBy('sort_order', 'asc')
+            ->get(['id', 'name', 'slug', 'description', 'image_path']);
+
+        return response()->json($categories);
+    }
+
+    public function get_category(string $shop_key, int $category_id)
+    {   
+        $user = User::where('shop_key', $shop_key)->first();
+        if (!$user) {
+            return response()->json(['error' => 'Invalid shop key'], 404);
+        }
+
+        $company = $user->company;
+        $databaseName = $company->database_name;
+        // Set the tenant database connection
+        config(['database.connections.tenant.database' => $databaseName]);
+        $category = Category::where('status', true)
+            ->find($category_id);
+
+        if (!$category) {
+            return response()->json(['error' => 'Category not found'], 404);
+        }
+
+        return response()->json($category);
     }
 }

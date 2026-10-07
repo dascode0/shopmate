@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant\Category;
 use App\Models\Tenant\Product;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
@@ -265,5 +267,41 @@ class ProductController extends Controller
         return redirect()
             ->route('products.index')
             ->with('success', 'Product deleted successfully.');
+    }
+
+    public function get_products(String $shop_key)
+    {
+        $user = User::where('shop_key', $shop_key)->first();
+        if (!$user) {
+            return response()->json(['error' => 'Invalid shop key'], 404);
+        }
+
+        $company = $user->company;
+        $databaseName = $company->database_name;
+        // Set the tenant database connection
+        config(['database.connections.tenant.database' => $databaseName]);
+        // Now you can query the products from the tenant database
+        $products = Product::with('productImages')->get();
+        return response()->json($products);
+
+    }
+
+    public function get_product(String $shop_key, int $product_id)
+    {
+        $user = User::where('shop_key', $shop_key)->first();
+        if (!$user) {
+            return response()->json(['error' => 'Invalid shop key'], 404);
+        }
+
+        $company = $user->company;
+        $databaseName = $company->database_name;
+        // Set the tenant database connection
+        config(['database.connections.tenant.database' => $databaseName]);
+        // Now you can query the product from the tenant database
+        $product = Product::with('productImages')->find($product_id);
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+        return response()->json($product);
     }
 }
